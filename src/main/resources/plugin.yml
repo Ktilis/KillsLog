@@ -1,0 +1,8 @@
+name: KillsLog
+version: '${version}'
+main: org.ktilis.killslog.main.Main
+api-version: 1.14
+authors: [ Ktilis ]
+commands:
+  kills:
+    permission: killslog.menu
