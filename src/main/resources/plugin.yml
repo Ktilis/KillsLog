@@ -6,3 +6,6 @@ authors: [ Ktilis ]
 commands:
   kills:
     permission: killslog.menu
+permissions:
+  killslog.menu:
+    description: "Perm to All access plugin"
