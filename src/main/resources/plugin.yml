@@ -3,6 +3,7 @@ version: '${version}'
 main: org.ktilis.killslog.main.Main
 api-version: 1.14
 authors: [ Ktilis ]
+website: "https://github.com/Ktilis/KillsLog"
 commands:
   kills:
     permission: killslog.menu

@@ -1,6 +1,11 @@
 package org.ktilis.killslog.database;
 
+import net.md_5.bungee.api.ChatColor;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -32,7 +37,8 @@ public class SQLiteDatabase {
                     + " killer     TEXT NOT NULL,"
                     + " victim     TEXT NOT NULL,"
                     + " time       TEXT NOT NULL,"
-                    + " inventory  TEXT NOT NULL"
+                    + " inventory  TEXT NOT NULL,"
+                    + " location   TEXT NOT NULL"
                     + ")");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -55,20 +61,22 @@ public class SQLiteDatabase {
 
     }
 
-    public static boolean newKill(String killers, String victim, Inventory inv) {
+    public static boolean newKill(String killers, String victim, Inventory inv, Location loc) {
         String currentTime = new Date().toString();
 
         try {
-            String invStr =  InventorySerialization.InventoryToString(inv);
+            String invStr = InventorySerialization.InventoryToString(inv);
+            String locStr = LocationSerialization.LocationToString(loc);
 
             PreparedStatement insertStmt = conn.prepareStatement(
-                    "INSERT INTO kills(killer, victim, time, inventory) VALUES(?, ?, ?, ?)"
+                    "INSERT INTO kills(killer, victim, time, inventory, location) VALUES(?, ?, ?, ?, ?)"
             );
 
             insertStmt.setString(1, killers);
             insertStmt.setString(2, victim);
             insertStmt.setString(3, currentTime);
             insertStmt.setString(4, invStr);
+            insertStmt.setString(5, locStr);
 
             insertStmt.executeUpdate();
             return true;
@@ -78,7 +86,7 @@ public class SQLiteDatabase {
         }
     }
 
-    public static ArrayList<String> getLastFiveKills() {
+    public static ArrayList<BaseComponent[]> getLastFiveKills() {
         try {
             return killsList("SELECT * FROM kills ORDER BY ID DESC LIMIT 5;");
         } catch (SQLException e) {
@@ -87,7 +95,7 @@ public class SQLiteDatabase {
         }
     }
 
-    public static ArrayList<String> search(int mode, String nick) {
+    public static ArrayList<BaseComponent[]> search(int mode, String nick) {
         try {
             if (mode == 1) return killsList("SELECT * FROM kills WHERE killer=\""+nick+"\" ORDER BY ID DESC LIMIT 5;"); //Search killer
             if (mode == 2) return killsList("SELECT * FROM kills WHERE victim=\""+nick+"\" ORDER BY ID DESC LIMIT 5;"); //Search victim
@@ -107,11 +115,12 @@ public class SQLiteDatabase {
             String victim = (rs.getString("victim") != null) ? rs.getString("victim") : "null";
             String time = (rs.getString("time") != null) ? rs.getString("time") : "null";
             Inventory inv = InventorySerialization.StringToInventory((rs.getString("inventory") != null) ? rs.getString("inventory") : "{\"name\":\"PLAYER\",\"size\":41,\"items\":[]}");
+            Location loc = LocationSerialization.StringToLocation((rs.getString("location") != null) ? rs.getString("location") : "{\"world\":\"null\",\"x\":0,\"y\":0,\"z\":0}");
 
-            DatabaseTransferByID data = new DatabaseTransferByID(killer, victim, time, inv);
+            DatabaseTransferByID data = new DatabaseTransferByID(killer, victim, time, inv, loc);
 
             statement.close();
-            if(killer == null) return new DatabaseTransferByID("null", "null", "null", Bukkit.createInventory(null, 54, "null"));
+            if(killer == null) return new DatabaseTransferByID("null", "null", "null", Bukkit.createInventory(null, 54, "null"), new Location(Bukkit.getWorld("world"), 0, 0, 0));
             return data;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -119,10 +128,10 @@ public class SQLiteDatabase {
         return null;
     }
 
-    private static ArrayList<String> killsList(String sql) throws SQLException {
+    private static ArrayList<BaseComponent[]> killsList(String sql) throws SQLException {
         ResultSet rs = stat.executeQuery(sql);
 
-        ArrayList<String> result = new ArrayList<String>();
+        ArrayList<BaseComponent[]> result = new ArrayList<>();
 
         while(rs.next()) {
             int id = rs.getInt("id");
@@ -130,10 +139,37 @@ public class SQLiteDatabase {
             String victim = rs.getString("victim");
             String time = rs.getString("time");
 
-            result.add(String.format("ID - %s: %s killed %s at %s", id, killer, victim, time));
+            BaseComponent[] component = new BaseComponent[3];
+            component[0] = new TextComponent(String.format("ID - %s: %s killed %s at %s", id, killer, victim, time));
+
+            TextComponent visibleINV = new TextComponent(" [inv]");
+            visibleINV.setBold(true);
+            visibleINV.setColor(net.md_5.bungee.api.ChatColor.AQUA);
+            visibleINV.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kills service openInventory "+ id));
+            component[1] = visibleINV;
+
+            TextComponent visiblePOS = new TextComponent(" [pos]");
+            visiblePOS.setBold(true);
+            visiblePOS.setColor(ChatColor.BLUE);
+            visiblePOS.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kills service openPos showMenu "+ id));
+            component[2] = visiblePOS;
+
+            result.add(component);
         }
 
         return result;
+    }
+
+    public static boolean deleteKillById(Integer id) {
+        try {
+            PreparedStatement insertStmt = conn.prepareStatement(
+                    "DELETE FROM kills WHERE id=\""+id+"\";"
+            );
+            insertStmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     public static class DatabaseTransferByID {
@@ -141,12 +177,14 @@ public class SQLiteDatabase {
         public String victim;
         public String time;
         public Inventory inventory;
+        public Location location;
 
-        public DatabaseTransferByID(String killer, String victim, String time, Inventory inv) {
+        public DatabaseTransferByID(String killer, String victim, String time, Inventory inv, Location loc) {
             this.killer = killer;
             this.victim = victim;
             this.time = time;
             this.inventory = inv;
+            this.location = loc;
         }
 
         @Override
@@ -156,6 +194,7 @@ public class SQLiteDatabase {
                     ",victim='" + victim + '\'' +
                     ",time='" + time + '\'' +
                     ",inventory=" + inventory +
+                    ",location=" + location +
                     '}';
         }
     }
