@@ -122,42 +122,43 @@ public class SQLiteDatabase {
             statement.close();
             if(killer == null) return new DatabaseTransferByID("null", "null", "null", Bukkit.createInventory(null, 54, "null"), new Location(Bukkit.getWorld("world"), 0, 0, 0));
             return data;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        } catch (SQLException ignored) {}
         return null;
     }
 
     private static ArrayList<BaseComponent[]> killsList(String sql) throws SQLException {
-        ResultSet rs = stat.executeQuery(sql);
+        try {
+            ResultSet rs = stat.executeQuery(sql);
 
-        ArrayList<BaseComponent[]> result = new ArrayList<>();
+            ArrayList<BaseComponent[]> result = new ArrayList<>();
 
-        while(rs.next()) {
-            int id = rs.getInt("id");
-            String killer = rs.getString("killer");
-            String victim = rs.getString("victim");
-            String time = rs.getString("time");
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String killer = rs.getString("killer");
+                String victim = rs.getString("victim");
+                String time = rs.getString("time");
 
-            BaseComponent[] component = new BaseComponent[3];
-            component[0] = new TextComponent(String.format("ID - %s: %s killed %s at %s", id, killer, victim, time));
+                BaseComponent[] component = new BaseComponent[3];
+                component[0] = new TextComponent(String.format("ID - %s: %s killed %s at %s", id, killer, victim, time));
 
-            TextComponent visibleINV = new TextComponent(" [inv]");
-            visibleINV.setBold(true);
-            visibleINV.setColor(net.md_5.bungee.api.ChatColor.AQUA);
-            visibleINV.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kills service openInventory "+ id));
-            component[1] = visibleINV;
+                TextComponent visibleINV = new TextComponent(" [inv]");
+                visibleINV.setBold(true);
+                visibleINV.setColor(net.md_5.bungee.api.ChatColor.AQUA);
+                visibleINV.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kills service openInventory " + id));
+                component[1] = visibleINV;
 
-            TextComponent visiblePOS = new TextComponent(" [pos]");
-            visiblePOS.setBold(true);
-            visiblePOS.setColor(ChatColor.BLUE);
-            visiblePOS.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kills service openPos showMenu "+ id));
-            component[2] = visiblePOS;
+                TextComponent visiblePOS = new TextComponent(" [pos]");
+                visiblePOS.setBold(true);
+                visiblePOS.setColor(ChatColor.BLUE);
+                visiblePOS.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/kills service openPos showMenu " + id));
+                component[2] = visiblePOS;
 
-            result.add(component);
-        }
+                result.add(component);
+            }
 
-        return result;
+            return result;
+        } catch (Exception ignored) {}
+        return null;
     }
 
     public static boolean deleteKillById(Integer id) {

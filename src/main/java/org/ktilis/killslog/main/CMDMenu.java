@@ -3,6 +3,7 @@ package org.ktilis.killslog.main;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -26,7 +27,10 @@ public class CMDMenu implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String lbl, String[] args) {
-        Player p = (Player) sender;
+        if (!(sender instanceof Player p)) {
+            Main.getInstance().getLogger().info("Only for players!");
+            return true;
+        }
 
         if(args.length == 0) {
             sender.sendMessage(
@@ -36,9 +40,6 @@ public class CMDMenu implements CommandExecutor, Listener {
                     ChatColor.RED + "" + ChatColor.ITALIC + "/" + lbl + " id [id]" + ChatColor.RESET + ChatColor.WHITE + "- Searches kill by id.",
                     ChatColor.GRAY + "----------------------------------"
             );
-            return true;
-        } else if(args[0].equalsIgnoreCase("openInv") && args[1] != null) {
-            p.openInventory(lastInv);
             return true;
         } else if(args[0].equalsIgnoreCase("last")) {
             ArrayList<BaseComponent[]> list = SQLiteDatabase.getLastFiveKills();
@@ -55,8 +56,7 @@ public class CMDMenu implements CommandExecutor, Listener {
             sender.sendMessage(ChatColor.GRAY + "----------------------------------");
 
             return true;
-        } else if(args[0].equalsIgnoreCase("search") && args[1] != null && args[2] != null) {
-
+        } else if(args[0].equalsIgnoreCase("search") && args.length == 3) {
             if(args[1].equalsIgnoreCase("killer")) {
                 String nick = args[2];
                 ArrayList<BaseComponent[]> list = SQLiteDatabase.search(1,nick);
@@ -86,7 +86,7 @@ public class CMDMenu implements CommandExecutor, Listener {
             } else {
                 sender.sendMessage(ChatColor.RED+"Uncorrected command");
             }
-        } else if(args[0].equalsIgnoreCase("id") && args[1] != null) {
+        } else if(args[0].equalsIgnoreCase("id") && args.length == 2) {
             int id = Integer.parseInt(args[1]);
             SQLiteDatabase.DatabaseTransferByID array = null;
             try {
@@ -94,11 +94,14 @@ public class CMDMenu implements CommandExecutor, Listener {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
+            if(array == null) {
+                sender.sendMessage(ChatColor.RED+"Uncorrected command");
+                return true;
+            }
 
             String killer = array.killer;
             String victim = array.victim;
             String time = array.time;
-            lastInv = array.inventory;
 
             TextComponent visibleINV = new TextComponent("[inventory]");
             visibleINV.setBold(true);
@@ -150,6 +153,7 @@ public class CMDMenu implements CommandExecutor, Listener {
                 e.printStackTrace();
             }
             assert array != null;
+            lastInv = array.inventory;
             p.openInventory(array.inventory);
         } else if(args[1].equalsIgnoreCase("deleteKill")) {
             if(args.length == 3) {
