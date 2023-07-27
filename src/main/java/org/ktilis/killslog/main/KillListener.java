@@ -1,18 +1,11 @@
 package org.ktilis.killslog.main;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryInteractEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.ktilis.killslog.database.SQLiteDatabase;
-
-import java.util.Objects;
 
 public class KillListener implements Listener {
     @EventHandler
@@ -29,7 +22,7 @@ public class KillListener implements Listener {
 
     @EventHandler
     public void dontTouchInventory(InventoryClickEvent e) {
-        if (!e.getInventory().equals(CMDMenu.lastInv)) return;
+        if (!e.getInventory().equals(MainCommand.lastInv)) return;
         e.setCancelled(true);
     }
 }

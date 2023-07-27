@@ -2,27 +2,23 @@ package org.ktilis.killslog.main;
 
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.TextComponent;;
-import org.bukkit.Bukkit;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
-import org.bukkit.inventory.PlayerInventory;
-import org.ktilis.killslog.database.InventorySerialization;
 import org.ktilis.killslog.database.SQLiteDatabase;
-import org.sqlite.util.StringUtils;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 
-public class CMDMenu implements CommandExecutor, Listener {
+;
+
+public class MainCommand implements CommandExecutor, Listener {
     public static Inventory lastInv;
 
     @Override
@@ -191,7 +187,7 @@ public class CMDMenu implements CommandExecutor, Listener {
                 }
             }
         } else if (args[1].equalsIgnoreCase("openPos")) {
-            if(args[2].equalsIgnoreCase("showMenu")) {
+            if (args[2].equalsIgnoreCase("showMenu")) {
                 try {
                     int id = Integer.parseInt(args[3]);
 
@@ -201,7 +197,7 @@ public class CMDMenu implements CommandExecutor, Listener {
                     text[0] = new TextComponent("[COPY]");
                     text[0].setBold(true);
                     text[0].setColor(net.md_5.bungee.api.ChatColor.AQUA);
-                    text[0].setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, data.location.getBlockX()+" "+data.location.getBlockY()+" "+data.location.getBlockZ()));
+                    text[0].setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, data.location.getBlockX() + " " + data.location.getBlockY() + " " + data.location.getBlockZ()));
                     text[1] = new TextComponent(" ");
                     text[2] = new TextComponent("[TP]");
                     text[2].setBold(true);
@@ -212,10 +208,10 @@ public class CMDMenu implements CommandExecutor, Listener {
                     sender.sendMessage(ChatColor.GRAY + "----------------------------------");
                     sender.sendMessage(
                             "ID: " + id,
-                            "World: "+data.location.getWorld().getName(),
-                            "X: "  +  data.location.getBlockX(),
-                            "Y: "  +  data.location.getBlockY(),
-                            "Z: "  +  data.location.getBlockZ()
+                            "World: " + data.location.getWorld().getName(),
+                            "X: " + data.location.getBlockX(),
+                            "Y: " + data.location.getBlockY(),
+                            "Z: " + data.location.getBlockZ()
                     );
                     sender.spigot().sendMessage(text);
                     sender.sendMessage(ChatColor.GRAY + "----------------------------------");
